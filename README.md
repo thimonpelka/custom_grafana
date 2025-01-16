@@ -1,3 +1,4 @@
 - Datasource muss noch durch richtige Datasource ersetzt werden
+- UID in Dashboard muss durch richtige UID der Datasource ersetzt werden
 - Dashboard muss durch richtiges Dashboard ersetzt werden
 - Um weitere Features im Grafana part direkt einsetzen zu könnnen, müsste Grafana selbst neu gebuildet werden. Dies ist wartungstechnisch ein größeres Risiko

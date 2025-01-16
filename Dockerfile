@@ -38,10 +38,10 @@ ENV GF_UNIFIED_ALERTING_ENABLED=false
 
 # ---- DASHBOARDS: ----
 # Overwrite home dashboard
-COPY dashboards/home.json /usr/share/grafana/public/dashboards/home.json
+COPY dashboards/ /usr/share/grafana/public/dashboards/
 
 # ---- DATSOURCES: ----
-COPY datasources/influxdb-datasource.yaml /usr/share/grafana/conf/provisioning/datasources/influxdb-datasource.yaml
+COPY datasources/ /usr/share/grafana/conf/provisioning/datasources/
 
 # ---- APP TITLE: ----
 # This works, however the name gets instantly overwritten by the javascript code. Therefore we need the following line as well
