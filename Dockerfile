@@ -40,6 +40,9 @@ ENV GF_UNIFIED_ALERTING_ENABLED=false
 # Overwrite home dashboard
 COPY dashboards/home.json /usr/share/grafana/public/dashboards/home.json
 
+# ---- DATSOURCES: ----
+COPY datasources/influxdb-datasource.yaml /usr/share/grafana/conf/provisioning/datasources/influxdb-datasource.yaml
+
 # ---- APP TITLE: ----
 # This works, however the name gets instantly overwritten by the javascript code. Therefore we need the following line as well
 RUN sed -i 's|<title>\[\[.AppTitle]]<\/title>|<title>Process Data<\/title>|g' /usr/share/grafana/public/views/index.html;
@@ -51,6 +54,7 @@ RUN sed -i 's|LoginTitle="Welcome to Grafana"|LoginTitle="Process Data Suite"|g'
 
 # Tip to find the correct file to edit: go to routes.tsx and search for the route you want to edit. Then search for the file in the public folder
 
+# THIS DOES NOT WORK. THE PROJECT WOULD HAVE TO BE BUILT AGAIN
 RUN sed -i 's|return (|return (<span>test</span>|g' /usr/share/grafana/public/app/features/browse-dashboards/BrowseDashboardsPage.tsx;
 
 

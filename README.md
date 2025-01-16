@@ -1,4 +1,3 @@
-```
-docker-build -t custom-grafana .
-docker run -d -p 3000:3000 custom-grafana
-```
+- Datasource muss noch durch richtige Datasource ersetzt werden
+- Dashboard muss durch richtiges Dashboard ersetzt werden
+- Um weitere Features im Grafana part direkt einsetzen zu könnnen, müsste Grafana selbst neu gebuildet werden. Dies ist wartungstechnisch ein größeres Risiko

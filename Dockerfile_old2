@@ -1,0 +1,73 @@
+# Multi-stage build to keep final image size small
+FROM golang:1.22-alpine AS builder
+# Install required build dependencies
+RUN apk add --no-cache git nodejs npm make g++ bash yarn findutils;
+# Set Grafana version
+ENV GRAFANA_VERSION="11.4.0"
+# Increase Node.js memory limit
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+# Create working directory
+WORKDIR /go/src/github.com/grafana
+# Clone specific version (depth=1 makes it much faster by getting only latest commit)
+RUN git clone --depth 1 --branch v${GRAFANA_VERSION} https://github.com/grafana/grafana.git;
+WORKDIR /go/src/github.com/grafana/grafana
+# Build frontend assets
+ENV NODE_ENV="production"
+RUN make deps-js;
+RUN yarn cache clean && \
+    NODE_OPTIONS="--max-old-space-size=4096" make build-js;
+# Install specific Go version and make it the default
+RUN go install golang.org/dl/go1.23.1@latest && \
+    go1.23.1 download && \
+    rm /usr/local/go/bin/go && \
+    ln -s /root/sdk/go1.23.1/bin/go /usr/local/go/bin/go;
+# Verify Go version
+RUN go version;
+# Build backend
+ENV GOTOOLCHAIN="local"
+ENV GO111MODULE="on"
+ENV PATH="/root/sdk/go1.23.1/bin:${PATH}"
+RUN make deps-go && \
+    make build-go;
+
+# Final stage
+FROM alpine:3.18
+# Install runtime dependencies and troubleshooting tools
+RUN apk add --no-cache ca-certificates bash file
+WORKDIR /usr/share/grafana
+# Copy built assets from builder - keeping original binary names
+COPY --from=builder /go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-server /usr/bin/grafana-server
+COPY --from=builder /go/src/github.com/grafana/grafana/bin/linux-amd64/grafana-cli /usr/bin/grafana-cli
+COPY --from=builder /go/src/github.com/grafana/grafana/bin/linux-amd64/grafana /usr/bin/grafana
+COPY --from=builder /go/src/github.com/grafana/grafana/conf ./conf
+COPY --from=builder /go/src/github.com/grafana/grafana/public ./public
+COPY --from=builder /go/src/github.com/grafana/grafana/tools ./tools
+# Configure Grafana
+ENV PATH="/usr/bin:$PATH" \
+    GF_PATHS_CONFIG="/etc/grafana/grafana.ini" \
+    GF_PATHS_DATA="/var/lib/grafana" \
+    GF_PATHS_HOME="/usr/share/grafana" \
+    GF_PATHS_LOGS="/var/log/grafana" \
+    GF_PATHS_PLUGINS="/var/lib/grafana/plugins" \
+    GF_PATHS_PROVISIONING="/etc/grafana/provisioning"
+# Create required directories and default config
+RUN mkdir -p "$GF_PATHS_HOME/.aws" \
+    && mkdir -p "$GF_PATHS_PROVISIONING/datasources" \
+    "$GF_PATHS_PROVISIONING/dashboards" \
+    "$GF_PATHS_PROVISIONING/notifiers" \
+    "$GF_PATHS_PROVISIONING/plugins" \
+    "$GF_PATHS_LOGS" \
+    "$GF_PATHS_PLUGINS" \
+    "$GF_PATHS_DATA" \
+    "/etc/grafana" && \
+    cp /usr/share/grafana/conf/defaults.ini /etc/grafana/grafana.ini;
+
+# Create a wrapper script to handle the command properly
+RUN echo '#!/bin/ash\nexec /usr/bin/grafana-server --homepath=/usr/share/grafana "$@"' > /usr/local/bin/start-grafana && \
+    chmod +x /usr/local/bin/start-grafana
+
+# Expose port
+EXPOSE 3000
+
+# Start Grafana using the wrapper script
+CMD ["/usr/local/bin/start-grafana"]
