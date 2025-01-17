@@ -1,0 +1,17 @@
+main#pageContent::before {
+  /*content: 'Process Data';*/
+
+  /* Maintains aspect ratio */
+  content: "";
+  display: block;
+  background-image: url("../img/logo.png");
+  /* Specify the PNG file */
+  background-size: contain;
+  /* Ensures the image scales proportionally */
+  background-repeat: no-repeat;
+  /* Prevents repeating the image */
+  width: auto;
+  /* Set the desired width */
+  height: 100px;
+  /* Set the desired height */
+}
