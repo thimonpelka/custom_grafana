@@ -1,3 +1,9 @@
+:root {
+	--cg-grey: #969696;
+	--cg-red: #C61318;
+}
+
+/* Add logo on top of graphs */
 main#pageContent::before {
   /*content: 'Process Data';*/
 
@@ -14,4 +20,33 @@ main#pageContent::before {
   /* Set the desired width */
   height: 100px;
   /* Set the desired height */
+}
+
+/* Change color of header to grey */
+header > div:first-child {
+	background-color: var(--cg-grey) !important;
+}
+
+/* Add CONENGA next to logo */
+header > div > div > a[href="/"]::after {
+	content: 'CONENGA';
+	display: block;
+	margin-left: 1vw;
+}
+
+/* Remove Help and News Button */
+header > div > div > button[aria-label="Help"],
+header > div > div > button[aria-label="News"] {
+	display: none !important;
+}
+
+/* Remove Share Button */
+header > div > div > div > div > div > button[data-testid="data-testid Share dashboard"] {
+	display: none !important;
+}
+
+/* Remove Footer */
+/* DANGER: This will remove the footer from all pages */
+footer > div > ul > li {
+	display: none !important;
 }
